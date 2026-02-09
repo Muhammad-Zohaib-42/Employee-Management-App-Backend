@@ -1,0 +1,65 @@
+# dependencies
+node_modules
+
+# environment variables
+.env
+.env.*
+!.env.example
+
+# build outputs
+dist
+build
+out
+coverage
+
+# logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# cache
+.cache
+.eslintcache
+.prettiercache
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# uploads / user files
+uploads
+public/uploads
+tmp
+temp
+
+# database
+*.sqlite
+*.sqlite3
+
+# test artifacts
+*.snap
+
+# compiled frontend (if any)
+public/build
+public/dist
+
+# docker
+docker-data
+
+# misc
+*.min.js
+*.min.css
