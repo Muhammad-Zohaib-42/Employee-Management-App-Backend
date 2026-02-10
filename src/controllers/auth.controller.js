@@ -4,6 +4,7 @@ import uploadFile from "../services/uploadFile.service.js"
 import ApiError from "../utils/ApiError.js"
 import ApiResponse from "../utils/ApiResponse.js"
 import { options } from "../constants.js"
+import jwt from "jsonwebtoken"
 
 async function generateAccessAndRefreshToken(userId) {
     const user = await User.findById(userId)
@@ -91,11 +92,11 @@ const loginUser = asyncHandler( async (req, res) => {
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
 
-    return res.
-    status(200).
-    cookie("accessToken", accessToken, options).
-    cookie("refreshToken", refreshToken, options).
-    json(new ApiResponse(
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(new ApiResponse(
         200,
         {
             user: loggedInUser, accessToken, refreshToken
@@ -104,4 +105,95 @@ const loginUser = asyncHandler( async (req, res) => {
     ))
 } )
 
-export { registerUser, loginUser }
+const refreshAccessToken = asyncHandler( async (req, res) => {
+    const { refreshToken } = req.cookies
+
+    if (!refreshToken) {
+        throw new ApiError(400, "Unauthorized request")
+    }
+
+    try {
+        const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET)
+        
+        const user = await User.findById(decoded._id)
+    
+        const accessToken = user.generateAccessToken()
+    
+        if (!accessToken) {
+            throw new ApiError(500, "Something went wrong while generating access token")
+        }
+    
+        return res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .json(new ApiResponse(
+            200,
+            {
+                accessToken
+            },
+            "access token refreshed successfully!"
+        ))
+    } catch (error) {
+        throw new ApiError(401, "invalid refresh token")
+    }
+} )
+
+const updateAvatar = asyncHandler( async (req, res) => {
+    const { file, user } = req
+
+    if (!file) {
+        throw new ApiError(400, "avatar file is missing")
+    }
+
+    const response = await uploadFile(file.buffer.toString("base64"), file.originalname)
+
+    if (!response) {
+        throw new ApiError(500, "something went wrong while uploading file")
+    }
+
+    const loggedInUser = await User.findById(user._id)
+    loggedInUser.avatar = response.url
+    loggedInUser.save({ valideBeforeSave: false })
+
+    const updatedUser = await User.findById(loggedInUser._id).select("-password -refreshToken")
+
+    return res.
+    status(201).
+    json(new ApiResponse(
+        201,
+        {
+            user: updatedUser
+        },
+        "avatar updated successfully!"
+    ))
+} )
+
+const logoutUser = asyncHandler( async (req, res) => {
+    const { user } = req
+
+    const loggedInUser = await User.findById(user._id)
+
+    if (!loggedInUser) {
+        throw new ApiError(500, "user not found")
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+        loggedInUser._id,
+        { $unset: { refreshToken: 1 } },
+        { new: true }
+    )
+
+    return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(
+        200,
+        {
+            user: updatedUser
+        },
+        "user logout successfully !"
+    ))
+} )
+
+export { registerUser, loginUser, refreshAccessToken, updateAvatar, logoutUser }
