@@ -6,7 +6,9 @@ const client = new ImageKit({
 
 const uploadFile = async (file, fileName) => {
     const response = await client.files.upload({
-        file, fileName
+        file, 
+        fileName,
+        folder: "/employee-management-app"
     })
     
     return response

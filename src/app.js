@@ -12,7 +12,7 @@ app.use(cookieParser())
 app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }))
 app.use((err, req, res, next) => {
     console.error(err.stack)
-    res.status(500).json({ message: err.message })
+    res.status(err.statusCode || 500).json({ message: err.statusCode === 500 ? "Something went wrong, please try again later" : err.message })
 })
 
 app.use("/api/auth", authRouter)

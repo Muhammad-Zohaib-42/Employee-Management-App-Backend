@@ -33,7 +33,10 @@ const userSchema = new Schema({
             type: Schema.Types.ObjectId,
             ref: "Task"
         }
-    ]
+    ],
+    refreshToken: {
+        type: String
+    }
 }, { timestamps: true })
 
 userSchema.pre("save", async function() {
