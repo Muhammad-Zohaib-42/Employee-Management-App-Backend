@@ -2,7 +2,7 @@ const DB_NAME = "employee-management-db"
 
 const options = {
     httpOnly: true,
-    secure: true
+    secure: false
 }
 
 export { DB_NAME, options }

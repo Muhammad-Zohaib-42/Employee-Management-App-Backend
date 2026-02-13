@@ -11,13 +11,20 @@ const taskSchema = new Schema({
         required: true,
         trim: true
     },
-    deadline: {
+    category: {
         type: String,
-        trim: true
+        enum: ["new", "active", "completed"],
+        default: "new"
     },
-    owner: {
+    asignTo: {
         type: Schema.Types.ObjectId,
-        ref: "User"
+        ref: "User",
+        required: true
+    },
+    organization: {
+        type: Schema.Types.ObjectId,
+        ref: "Organization",
+        required: true
     }
 }, { timestamps: true })
 

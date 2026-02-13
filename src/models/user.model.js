@@ -26,16 +26,22 @@ const userSchema = new Schema({
         default: "employee"
     },
     avatar: {
-        type: String
-    },
-    tasks: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: "Task"
+        url: {
+            type: String,
+            required: true
+        },
+        id: {
+            type: String,
+            required: true
         }
-    ],
+    },
     refreshToken: {
         type: String
+    },
+    organization: {
+        type: Schema.Types.ObjectId,
+        ref: "Organization",
+        required: true
     }
 }, { timestamps: true })
 

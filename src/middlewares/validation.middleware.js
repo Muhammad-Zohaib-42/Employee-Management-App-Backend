@@ -33,6 +33,10 @@ const registerUserValidationRules = [
     .isLength({ min: 6 })
     .withMessage("Password must be atleast 6 characters long"),
 
+    body("organization")
+    .notEmpty()
+    .withMessage("organization is required"),
+
     validateResult
 ]
 
@@ -52,4 +56,20 @@ const loginUserValidationRules = [
     validateResult
 ]
 
-export { registerUserValidationRules, loginUserValidationRules }
+const taskValidationRules = [
+    body("title")
+    .notEmpty()
+    .withMessage("title is required"),
+
+    body("description")
+    .notEmpty()
+    .withMessage("description is required"),
+
+    body("asignTo")
+    .notEmpty()
+    .withMessage("ownerId is required"),
+
+    validateResult
+]
+
+export { registerUserValidationRules, loginUserValidationRules, taskValidationRules }
