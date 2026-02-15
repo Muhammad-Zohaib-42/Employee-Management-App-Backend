@@ -1,11 +1,10 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import User from "../models/user.model.js";
-import uploadFile from "../services/uploadFile.service.js";
+import {imageKit, uploadFile} from "../services/uploadFile.service.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { options } from "../constants.js";
 import jwt from "jsonwebtoken";
-import ImageKit from "@imagekit/nodejs";
 import Organization from "../models/organization.model.js";
 
 async function generateAccessAndRefreshToken(userId) {
@@ -36,20 +35,25 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   const { file } = req;
-  let fileUrl = null;
-  let fileId = null;
 
-  if (file) {
-    const { buffer, originalname } = file;
-    const response = await uploadFile(buffer.toString("base64"), originalname);
-    fileUrl = response.url;
-    fileId = response.fileId;
+  if (!file) {
+    throw new ApiError(400, "avatar is required");
   }
+
+  const { buffer, originalname } = file;
+  const response = await uploadFile(buffer.toString("base64"), originalname);
+
+  if (!response) {
+    throw new ApiError(500, "something went wrong while uploading file");
+  }
+
+  const fileUrl = response.url;
+  const fileId = response.fileId;
 
   const existedOrganization = await Organization.findOne({
     name: organization,
   });
-  const createdOrganization = null;
+  let createdOrganization = null;
 
   if (!existedOrganization && role === "admin") {
     createdOrganization = await Organization.create({ name: organization });
@@ -109,7 +113,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    throw new ApiError(500, "email is incorrect, please try again");
+    throw new ApiError(500, "user not found with this email, please register first");
   }
 
   const isPasswordValid = await user.isPasswordCorrect(password);
@@ -198,10 +202,10 @@ const updateAvatar = asyncHandler(async (req, res) => {
   }
 
   const loggedInUser = await User.findById(user._id);
-  await ImageKit.deleteFile(loggedInUser.avatar.id);
+  await imageKit.files.delete(loggedInUser.avatar.id);
   loggedInUser.avatar.url = response.url;
   loggedInUser.avatar.id = response.fileId;
-  await loggedInUser.save({ valideBeforeSave: false });
+  await loggedInUser.save({ validateBeforeSave: false });
 
   const updatedUser = await User.findById(loggedInUser._id).select(
     "-password -refreshToken"
@@ -256,5 +260,5 @@ export {
   refreshAccessToken,
   updateAvatar,
   logoutUser,
-  deleteUser,
+  deleteUser
 };

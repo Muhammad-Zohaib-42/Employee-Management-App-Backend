@@ -1,11 +1,11 @@
 import ImageKit from "@imagekit/nodejs"
 
-const client = new ImageKit({
+const imageKit = new ImageKit({
     privateKey: process.env.IMAGEKIT_PRIVATE_KEY
 })
 
 const uploadFile = async (file, fileName) => {
-    const response = await client.files.upload({
+    const response = await imageKit.files.upload({
         file, 
         fileName,
         folder: "/employee-management-app"
@@ -14,4 +14,4 @@ const uploadFile = async (file, fileName) => {
     return response
 }
 
-export default uploadFile
+export {imageKit, uploadFile}
